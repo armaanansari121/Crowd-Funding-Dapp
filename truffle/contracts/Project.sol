@@ -3,8 +3,6 @@ pragma solidity 0.8.19;
 
 contract Project {
     enum State {
-        fundingPeriod,
-        refundPeriod,
         paymentPending,
         closed
     }
@@ -20,8 +18,6 @@ contract Project {
     string public description;
     uint256 public goal;
     uint256 public raised;
-    uint256 fundingDuration;
-    uint256 refundDuration;
     uint256 public fundingDeadline;
     uint256 public refundDeadline;
     State public state;
@@ -37,8 +33,8 @@ contract Project {
         string memory _name,
         string memory _description,
         uint256 _goal,
-        uint256 _fundingDuration,
-        uint256 _refundDuration
+        uint256 _fundingDeadline,
+        uint256 _refundDeadline
     ) {
         creator = _creator;
         receiver = _receiver;
@@ -46,17 +42,13 @@ contract Project {
         description = _description;
         goal = _goal;
         raised = 0;
-        fundingDuration = _fundingDuration;
-        fundingDeadline = block.timestamp + _fundingDuration;
-        refundDuration = _refundDuration;
-        state = State.fundingPeriod;
+        fundingDeadline = _fundingDeadline;
+        refundDeadline = _refundDeadline;
+        state = State.paymentPending;
     }
 
     function donateToProject(string memory message) external payable {
-        require(
-            state == State.fundingPeriod,
-            "Funding Period is over."
-        );
+        require(state == State.paymentPending, "Project Closed.");
         require(block.timestamp <= fundingDeadline, "Fundng Period is over.");
         require(msg.value >= minDonation, "Amount less than minimum donation.");
 
@@ -72,34 +64,20 @@ contract Project {
                 donation.value -= excess;
             }
             raised = goal;
-            state = State.paymentPending;
+            payable(receiver).transfer(address(this).balance);
+            state = State.closed;
         }
-    }
-
-    function targetNotHit() external {
-        require(
-            msg.sender == creator,
-            "You do not have authority to close funding."
-        );
-        require(state == State.fundingPeriod, "Project has completed funding period.");
-        require(raised <= goal, "Target has been hit.");
-        require(block.timestamp >= fundingDeadline, "Funding Deadline not Reached.");
-
-        state = State.refundPeriod;
-        refundDeadline = block.timestamp + refundDuration;
     }
 
     function refund(uint256 amount) external payable {
         uint256 toPay = amount * 1 gwei;
         Donation storage donation = donations[msg.sender];
+        require(state == State.paymentPending, "Project Closed.");
         require(
-            state == State.refundPeriod,
-            "Project is not in refund period."
+            block.timestamp >= fundingDeadline,
+            "Refund period has not started."
         );
-        require(
-            refundDeadline >= block.timestamp,
-            "Refund period over."
-        );
+        require(refundDeadline >= block.timestamp, "Refund period over.");
         require(
             donation.value >= toPay,
             "Asking amount is greater than donated."
@@ -109,31 +87,10 @@ contract Project {
         raised -= toPay;
     }
 
-    function refundPeriodOver() external {
-        require(
-            msg.sender == creator,
-            "You do not have the authority to finish refund period."
-        );
-        require(
-            state == State.refundPeriod,
-            "Refund period is not going on."
-        );
-        require(
-            refundDeadline <= block.timestamp,
-            "Refund period is not over."
-        );
-        state = State.paymentPending;
-    }
-
     function makePayment() external payable {
-        require(
-            state == State.paymentPending,
-            "Project is still running."
-        );
-        require(
-            msg.sender == creator,
-            "You do not have the authority to make payment."
-        );
+        require(state == State.paymentPending, "Payment has already been made.");
+        require(donations[msg.sender].value > 0, "You are not a participant of this fund.");
+        require(block.timestamp >= refundDeadline, "Project is still running.");
         payable(receiver).transfer(address(this).balance);
         state = State.closed;
     }

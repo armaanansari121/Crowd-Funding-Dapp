@@ -81,12 +81,13 @@ const CreateProjectForm = () => {
         padding: 4,
         backgroundColor: "#121212",
         color: "white",
-        minHeight: "100%",
+        // Hheight: "100%",
         display: "flex",
         flexDirection: "column",
+        // width: "50%",
       }}
     >
-      {isLoading && <Loader />}
+      {/* {isLoading && <Loader />} */}
       <Box sx={{ marginBottom: 4 }}>
         <Typography
           variant="h4"
@@ -103,7 +104,6 @@ const CreateProjectForm = () => {
         sx={{
           display: "flex",
           flexDirection: "column",
-          // justifyContent: "space-evenly",
           gap: 2,
           maxWidth: 450,
           margin: "0 auto",

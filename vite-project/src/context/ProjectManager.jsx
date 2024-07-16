@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useReducer } from "react";
 import { useWeb3 } from "./Web3";
 import projectManagerBuild from "../../../truffle/build/contracts/ProjectManager.json";
+import projectBuild from "../../../truffle/build/contracts/Project.json";
 
 const ProjectManagerContext = createContext();
 
@@ -48,6 +49,16 @@ function reducer(state, action) {
         successMessage: "",
         isLoading: false,
       };
+    case "project/loaded":
+      return {
+        ...state,
+        errorMessage: "",
+        isLoading: false,
+        projectInstances: {
+          ...state.projectInstances,
+          [action.payload.address]: action.payload.project,
+        },
+      };
     case "loading":
       return {
         ...state,
@@ -73,7 +84,7 @@ function ProjectManagerProvider({ children }) {
     dispatch,
   ] = useReducer(reducer, initialState);
 
-  console.log(projectInstances);
+  // console.log(projectManagerContract);
 
   useEffect(() => {
     async function initContract() {
@@ -160,6 +171,46 @@ function ProjectManagerProvider({ children }) {
     }
   };
 
+  async function loadProject(address) {
+    try {
+      dispatch({ type: "loading" });
+      const projectABI = projectBuild.abi;
+      const projectInstance = new web3.eth.Contract(projectABI, address);
+
+      const creator = await projectInstance.methods.creator().call();
+      const receiver = await projectInstance.methods.receiver().call();
+      const fundingDeadline = await projectInstance.methods
+        .fundingDeadline()
+        .call();
+      const refundDeadline = await projectInstance.methods
+        .refundDeadline()
+        .call();
+      const name = await projectInstance.methods.name().call();
+      const description = await projectInstance.methods.description().call();
+      const goal = await projectInstance.methods.goal().call();
+      const raised = await projectInstance.methods.raised().call();
+      const state = await projectInstance.methods.state().call();
+      // console.log("fetched project");
+      const project = {
+        projectInstance,
+        creator,
+        receiver,
+        name,
+        description,
+        goal,
+        raised,
+        fundingDeadline,
+        refundDeadline,
+        state,
+      };
+
+      dispatch({ type: "project/loaded", payload: { address, project } });
+    } catch (error) {
+      // throw new Error(error.message);
+      dispatch({ type: "project/error", payload: error.message });
+    }
+  }
+
   return (
     <ProjectManagerContext.Provider
       value={{
@@ -170,6 +221,7 @@ function ProjectManagerProvider({ children }) {
         successMessage,
         projectInstances,
         handleSubmit,
+        loadProject,
         dispatch,
       }}
     >
