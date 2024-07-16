@@ -1,0 +1,16 @@
+{
+  "name": "truffle-project",
+  "version": "1.0.0",
+  "description": "Truffle project for smart contract development",
+  "main": "truffle-config.js",
+  "scripts": {
+    "test": "truffle test",
+    "compile": "truffle compile",
+    "migrate": "truffle migrate"
+  },
+  "dependencies": {
+    "@truffle/hdwallet-provider": "^2.1.15",
+    "dotenv": "^16.4.5",
+    "web3": "^4.10.0"
+  }
+}

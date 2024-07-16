@@ -1,0 +1,124 @@
+{
+	"compiler": {
+		"version": "0.8.19+commit.7dd6d404"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "receiverAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "projectName",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "projectDescription",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "projectGoal",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "fundingDuration",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "refundDuration",
+						"type": "uint256"
+					}
+				],
+				"name": "createProject",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "projectNumber",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "projects",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"ProjectManager.sol": "ProjectManager"
+		},
+		"evmVersion": "paris",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"Project.sol": {
+			"keccak256": "0x479946c93a0e9e26fc88d05c3f8afac11e84760992297b290047fa431e20bccd",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://ace1ca77023aa59424c827da4a87505b5ddf733509acf32deadc809843faae39",
+				"dweb:/ipfs/QmUvGqkD9mp6rdEc7HZuPJHF7kVhzRTimJbK2JnCtw1HN5"
+			]
+		},
+		"ProjectManager.sol": {
+			"keccak256": "0x0db0a5a414391256fdaacc421640e4c8463b460b18546232d7fbe91bf26b8375",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://02df01b86ad7d5bae2f7c2217739dba7f39363a864c80723a1e6bca29049dd22",
+				"dweb:/ipfs/Qmdi9yHXYeVWv76Gsru2qNAwyDMkC47Vv2mi7Kmsj9RwRW"
+			]
+		}
+	},
+	"version": 1
+}
