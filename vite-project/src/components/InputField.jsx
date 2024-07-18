@@ -15,6 +15,7 @@ export default function InputField({
       onChange={(e) => onChange(e)}
       type={type}
       required
+      fullWidth
       InputLabelProps={{ style: { color: "white" } }}
       InputProps={{
         style: { color: "white" },

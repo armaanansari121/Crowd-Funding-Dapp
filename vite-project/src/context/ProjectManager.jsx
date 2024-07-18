@@ -64,6 +64,11 @@ function reducer(state, action) {
         ...state,
         isLoading: true,
       };
+    // case "loaded":
+    //   return {
+    //     ...state,
+    //     isLoading: true
+    // }
   }
 }
 
@@ -84,7 +89,7 @@ function ProjectManagerProvider({ children }) {
     dispatch,
   ] = useReducer(reducer, initialState);
 
-  // console.log(projectManagerContract);
+  // console.log(projectInstances);
 
   useEffect(() => {
     async function initContract() {
@@ -127,8 +132,8 @@ function ProjectManagerProvider({ children }) {
         name,
         description,
         goal,
-        fundingDuration,
-        refundDuration,
+        fundingDeadlineUnix,
+        refundDeadlineUnix,
       } = form;
 
       // Estimate gas
@@ -138,8 +143,8 @@ function ProjectManagerProvider({ children }) {
           name,
           description,
           web3.utils.toWei(goal, "gwei"),
-          fundingDuration,
-          refundDuration
+          fundingDeadlineUnix,
+          refundDeadlineUnix
         )
         .estimateGas({ from: selectedAccount });
 
@@ -152,8 +157,8 @@ function ProjectManagerProvider({ children }) {
           name,
           description,
           web3.utils.toWei(goal, "gwei"),
-          fundingDuration,
-          refundDuration
+          fundingDeadlineUnix,
+          refundDeadlineUnix
         )
         .send({
           from: selectedAccount,

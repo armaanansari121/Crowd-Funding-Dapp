@@ -17,6 +17,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { differenceInSeconds } from "date-fns";
 import DateField from "./DateField";
+import AccountSelector from "./AccountSelector";
 
 const CreateProjectForm = () => {
   const { accounts, selectedAccount, handleAccountChange } = useWeb3();
@@ -47,26 +48,25 @@ const CreateProjectForm = () => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     try {
-      const now = new Date();
-      const fundingDuration = differenceInSeconds(
-        new Date(form.fundingDeadline),
-        now
+      const now = Math.floor(new Date().getTime() / 1000);
+      const fundingDeadlineUnix = Math.floor(
+        new Date(form.fundingDeadline).getTime() / 1000
       );
-      if (fundingDuration < 432000) {
+      const refundDeadlineUnix = Math.floor(
+        new Date(form.refundDeadline).getTime() / 1000
+      );
+      if (fundingDeadlineUnix - now < 432000) {
         throw new Error("Funding Duration must be atleast 5 days.");
       }
-      const refundDuration = differenceInSeconds(
-        new Date(form.refundDeadline),
-        new Date(form.fundingDeadline)
-      );
-      if (refundDuration < 86400) {
+      if (refundDeadlineUnix - fundingDeadlineUnix < 86400) {
         throw new Error("Refund Duration must be atleast 1 day.");
       }
       const formData = {
         ...form,
-        fundingDuration,
-        refundDuration,
+        fundingDeadlineUnix,
+        refundDeadlineUnix,
       };
+      console.log(formData);
 
       await handleSubmit(formData);
     } catch (err) {
@@ -81,13 +81,10 @@ const CreateProjectForm = () => {
         padding: 4,
         backgroundColor: "#121212",
         color: "white",
-        // Hheight: "100%",
         display: "flex",
         flexDirection: "column",
-        // width: "50%",
       }}
     >
-      {/* {isLoading && <Loader />} */}
       <Box sx={{ marginBottom: 4 }}>
         <Typography
           variant="h4"
@@ -151,48 +148,7 @@ const CreateProjectForm = () => {
           />
         </LocalizationProvider>
 
-        <FormControl variant="outlined">
-          <InputLabel
-            shrink={true}
-            sx={{
-              color: "white",
-              backgroundColor: "#121212",
-              paddingRight: "4px",
-            }}
-          >
-            Select Account
-          </InputLabel>
-          <Select
-            value={selectedAccount || ""}
-            onChange={(e) => handleAccountChange(e.target.value)}
-            displayEmpty
-            inputProps={{ "aria-label": "Without label" }}
-            sx={{
-              color: "white",
-              ".MuiOutlinedInput-notchedOutline": {
-                borderColor: "white",
-              },
-              "&:hover .MuiOutlinedInput-notchedOutline": {
-                borderColor: "white",
-              },
-              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                borderColor: "white",
-              },
-              "& .MuiSelect-select": {
-                color: "white",
-              },
-              "& .MuiSelect-icon": {
-                color: "white",
-              },
-            }}
-          >
-            {accounts.map((account) => (
-              <MenuItem key={account} value={account}>
-                {account}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <AccountSelector />
         {errorMessage && (
           <Alert severity="error" variant="filled">
             {errorMessage}
