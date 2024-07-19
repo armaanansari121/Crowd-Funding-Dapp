@@ -1,28 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { useWeb3 } from "../context/Web3";
+import React, { useState } from "react";
 import { useProjectManager } from "../context/ProjectManager";
-import Loader from "./Loader";
-import {
-  Box,
-  Select,
-  MenuItem,
-  Button,
-  Typography,
-  InputLabel,
-  FormControl,
-  Alert,
-} from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import InputField from "./InputField";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { differenceInSeconds } from "date-fns";
 import DateField from "./DateField";
 import AccountSelector from "./AccountSelector";
+import SnackbarAlert from "./SnackbarAlert";
 
 const CreateProjectForm = () => {
-  const { accounts, selectedAccount, handleAccountChange } = useWeb3();
-  const { isLoading, errorMessage, handleSubmit, dispatch, successMessage } =
-    useProjectManager();
+  const { projectManagerStates, handleSubmit, dispatch } = useProjectManager();
+  const { errorMessage, successMessage } = projectManagerStates;
   const [form, setForm] = useState({
     receiverAddress: "",
     name: "",
@@ -31,6 +19,7 @@ const CreateProjectForm = () => {
     fundingDeadline: null,
     refundDeadline: null,
   });
+
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -66,7 +55,6 @@ const CreateProjectForm = () => {
         fundingDeadlineUnix,
         refundDeadlineUnix,
       };
-      console.log(formData);
 
       await handleSubmit(formData);
     } catch (err) {
@@ -150,14 +138,22 @@ const CreateProjectForm = () => {
 
         <AccountSelector />
         {errorMessage && (
-          <Alert severity="error" variant="filled">
-            {errorMessage}
-          </Alert>
+          <SnackbarAlert
+            severity={"error"}
+            message={errorMessage}
+            resetMessage={() =>
+              dispatch({ type: "projectManager/resetMessages" })
+            }
+          />
         )}
         {successMessage && (
-          <Alert severity="success" variant="filled">
-            {successMessage}
-          </Alert>
+          <SnackbarAlert
+            severity={"success"}
+            message={successMessage}
+            resetMessage={() =>
+              dispatch({ type: "projectManager/resetMessages" })
+            }
+          />
         )}
         <Button type="submit" variant="contained" color="primary">
           Create Project

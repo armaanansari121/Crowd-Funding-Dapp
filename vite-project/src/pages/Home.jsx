@@ -1,7 +1,7 @@
 import { Box } from "@mui/material";
-import CreateProjectForm from "./components/CreateProjectForm";
-import ProjectList from "./components/ProjectList";
-import Header from "./components/Header";
+import CreateProjectForm from "../components/CreateProjectForm";
+import ProjectList from "../components/ProjectList";
+import Header from "../components/Header";
 
 export default function Home() {
   return (

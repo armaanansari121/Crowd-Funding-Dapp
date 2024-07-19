@@ -20,7 +20,7 @@ const Header = ({ children }) => {
       <Typography
         variant="h4"
         component="h1"
-        sx={{ color: "white", marginLeft: "5rem" }}
+        sx={{ color: "#353535", marginLeft: "5rem", fontSize: "4rem" }}
       >
         {children}
       </Typography>

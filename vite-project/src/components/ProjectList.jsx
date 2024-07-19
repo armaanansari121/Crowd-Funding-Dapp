@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import Loader from "./Loader";
 
 const ProjectList = () => {
-  const { projects, isLoading, dispatch } = useProjectManager();
+  const { projects, projectManagerStates, dispatch } = useProjectManager();
 
   return (
     <Box
@@ -21,7 +21,9 @@ const ProjectList = () => {
         width: "50%",
       }}
     >
-      {isLoading && <Loader />}
+      {projectManagerStates.isLoading && (
+        <Loader loadingMessage={"Loading ..."} />
+      )}
       <Typography textAlign={"center"} variant="h4" sx={{ marginBottom: 2 }}>
         Projects
       </Typography>
@@ -32,7 +34,9 @@ const ProjectList = () => {
             button
             component={Link}
             to={`/project/${project}`}
-            onClick={() => dispatch({ type: "loading" })}
+            onClick={() => {
+              dispatch({ type: "project/loading" });
+            }}
           >
             <ListItemText primary={project} sx={{ textAlign: "center" }} />
           </ListItem>
