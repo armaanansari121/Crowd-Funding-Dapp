@@ -12,9 +12,10 @@ function Web3Provider({ children }) {
     const initWeb3 = async () => {
       if (window.ethereum) {
         const web3Instance = new Web3(window.ethereum);
-        await window.ethereum.enable();
         setWeb3(web3Instance);
-        const accounts = await web3Instance.eth.getAccounts();
+        const accounts = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
         setAccounts(accounts);
         setSelectedAccount(accounts[0]);
       } else {

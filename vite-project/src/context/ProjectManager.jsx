@@ -7,9 +7,16 @@ const ProjectManagerContext = createContext();
 
 const initialState = {
   projectManagerContract: null,
-  errorMessage: "",
-  successMessage: "",
-  isLoading: true,
+  projectManagerStates: {
+    errorMessage: "",
+    successMessage: "",
+    isLoading: true,
+  },
+  projectStates: {
+    errorMessage: "",
+    successMessage: "",
+    isLoading: true,
+  },
   projects: [],
   projectNumber: 0,
   projectInstances: {},
@@ -20,12 +27,24 @@ function reducer(state, action) {
     case "projectManager/loaded":
       return {
         ...state,
-        isLoading: false,
+        projectManagerStates: {
+          ...state.projectManagerStates,
+          isLoading: false,
+        },
         projectManagerContract: action.payload.projectManagerContract,
         projects:
           action.payload.projects === null ? [] : action.payload.projects,
         projectNumber: action.payload.projectNumber,
         projectInstances: action.payload.projectInstances,
+      };
+    case "projectManager/error":
+      return {
+        ...state,
+        projectManagerStates: {
+          ...state.projectManagerStates,
+          isLoading: false,
+          errorMessage: action.payload,
+        },
       };
     case "projectInstances/loaded":
       return {
@@ -37,83 +56,185 @@ function reducer(state, action) {
         ...state,
         projects: [...state.projects, action.payload],
         projectNumber: state.projectNumber + 1n,
-        isLoading: false,
-        errorMessage: "",
-        successMessage: `Project Created Successfully. \nProject Address: ${action.payload}`,
+        projectManagerStates: {
+          ...state.projectManagerStates,
+          isLoading: false,
+          errorMessage: "",
+          successMessage: `Project Created Successfully. \nProject Address: ${action.payload}`,
+        },
         projectInstances: { ...state.projectInstances, [action.payload]: {} },
       };
     case "projectCreation/failed":
       return {
         ...state,
-        errorMessage: action.payload,
-        successMessage: "",
-        isLoading: false,
+        projectManagerStates: {
+          ...state.projectManagerStates,
+          errorMessage: action.payload,
+          successMessage: "",
+          isLoading: false,
+        },
       };
     case "project/loaded":
       return {
         ...state,
-        errorMessage: "",
-        isLoading: false,
+        projectStates: {
+          ...state.projectStates,
+          isLoading: false,
+        },
         projectInstances: {
           ...state.projectInstances,
           [action.payload.address]: action.payload.project,
         },
       };
-    case "loading":
+    case "project/error":
       return {
         ...state,
-        isLoading: true,
+        projectStates: {
+          ...state.projectStates,
+          isLoading: false,
+          errorMessage: action.payload,
+        },
       };
+    case "projectManager/loading":
+      return {
+        ...state,
+        projectManagerStates: {
+          ...state.projectManagerStates,
+          isLoading: true,
+        },
+      };
+    case "project/loading":
+      console.log(state);
+      return {
+        ...state,
+        projectStates: {
+          ...state.projectStates,
+          isLoading: true,
+        },
+      };
+    case "project/donation/success":
+      return {
+        ...state,
+        projectStates: {
+          ...state.projectStates,
+          isLoading: false,
+          successMessage: action.payload.successMessage,
+        },
+        projectInstances: {
+          ...state.projectInstances,
+          [action.payload.address]: {
+            ...state.projectInstances[action.payload.address],
+            raised: action.payload.raised,
+          },
+        },
+      };
+    case "project/refund/success":
+      return {
+        ...state,
+        projectStates: {
+          ...state.projectStates,
+          isLoading: false,
+          successMessage: action.payload.successMessage,
+        },
+        projectInstances: {
+          ...state.projectInstances,
+          [action.payload.address]: {
+            ...state.projectInstances[action.payload.address],
+            raised: action.payload.raised,
+          },
+        },
+      };
+    case "project/payment/success": {
+      return {
+        ...state,
+        projectStates: {
+          ...state.projectStates,
+          isLoading: false,
+          successMessage: action.payload.successMessage,
+        },
+        projectInstances: {
+          ...state.projectInstances,
+          [action.payload.address]: {
+            ...state.projectInstances[action.payload.address],
+            state: action.payload.state,
+          },
+        },
+      };
+    }
+    case "projectManager/resetMessages": {
+      return {
+        ...state,
+        projectManagerStates: {
+          ...state.projectManagerStates,
+          errorMessage: "",
+          successMessage: "",
+        },
+      };
+    }
+    case "project/resetMessages": {
+      return {
+        ...state,
+        projectStates: {
+          ...state.projectStates,
+          errorMessage: "",
+          successMessage: "",
+        },
+      };
+    }
   }
 }
 
 function ProjectManagerProvider({ children }) {
   const { web3, selectedAccount } = useWeb3();
   const projectManagerABI = projectManagerBuild.abi;
-  const projectManagerAddress = projectManagerBuild.networks[17000].address;
+  const projectManagerAddress = projectManagerBuild.networks[11155111].address;
   const [
     {
       projectManagerContract,
-      errorMessage,
-      successMessage,
-      isLoading,
-      projectNumber,
+      projectManagerStates,
+      projectStates,
       projects,
+      projectNumber,
       projectInstances,
     },
     dispatch,
   ] = useReducer(reducer, initialState);
 
-  // console.log(projectManagerContract);
-
   useEffect(() => {
     async function initContract() {
       if (web3) {
-        const projectManagerInstance = new web3.eth.Contract(
-          projectManagerABI,
-          projectManagerAddress
-        );
-        const fetchedProjects = [];
-        const projectInstancesInit = {};
-        const fetchedProjectNumber = await projectManagerInstance.methods
-          .projectNumber()
-          .call();
-        for (let i = 1; i < fetchedProjectNumber; i++) {
-          const projectAddress = await projectManagerInstance.methods
-            .projects(i)
+        try {
+          const projectManagerInstance = new web3.eth.Contract(
+            projectManagerABI,
+            projectManagerAddress
+          );
+          const fetchedProjects = [];
+          const projectInstancesInit = {};
+          const fetchedProjectNumber = await projectManagerInstance.methods
+            .projectNumber()
             .call();
-          fetchedProjects.push(projectAddress);
-          projectInstancesInit[projectAddress] = {};
+          for (let i = 1; i < fetchedProjectNumber; i++) {
+            const projectAddress = await projectManagerInstance.methods
+              .projects(i)
+              .call();
+            fetchedProjects.push(projectAddress);
+            projectInstancesInit[projectAddress] = {};
+          }
+          dispatch({
+            type: "projectManager/loaded",
+            payload: {
+              projectManagerContract: projectManagerInstance,
+              projects: fetchedProjects,
+              projectNumber: fetchedProjectNumber,
+              projectInstances: projectInstancesInit,
+            },
+          });
+        } catch (err) {
+          dispatch({
+            type: "projectManager/error",
+            payload: err.message,
+          });
         }
-        dispatch({
-          type: "projectManager/loaded",
-          payload: {
-            projectManagerContract: projectManagerInstance,
-            projects: fetchedProjects,
-            projectNumber: fetchedProjectNumber,
-            projectInstances: projectInstancesInit,
-          },
-        });
       }
     }
     initContract();
@@ -121,39 +242,37 @@ function ProjectManagerProvider({ children }) {
 
   const handleSubmit = async (form) => {
     try {
-      dispatch({ type: "loading" });
+      dispatch({ type: "projectManager/loading" });
       const {
         receiverAddress,
         name,
         description,
         goal,
-        fundingDuration,
-        refundDuration,
+        fundingDeadlineUnix,
+        refundDeadlineUnix,
       } = form;
 
-      // Estimate gas
       const gasEstimate = await projectManagerContract.methods
         .createProject(
           receiverAddress,
           name,
           description,
           web3.utils.toWei(goal, "gwei"),
-          fundingDuration,
-          refundDuration
+          fundingDeadlineUnix,
+          refundDeadlineUnix
         )
         .estimateGas({ from: selectedAccount });
 
       const gasPrice = await web3.eth.getGasPrice();
 
-      // Send transaction
       const result = await projectManagerContract.methods
         .createProject(
           receiverAddress,
           name,
           description,
           web3.utils.toWei(goal, "gwei"),
-          fundingDuration,
-          refundDuration
+          fundingDeadlineUnix,
+          refundDeadlineUnix
         )
         .send({
           from: selectedAccount,
@@ -173,7 +292,6 @@ function ProjectManagerProvider({ children }) {
 
   async function loadProject(address) {
     try {
-      dispatch({ type: "loading" });
       const projectABI = projectBuild.abi;
       const projectInstance = new web3.eth.Contract(projectABI, address);
 
@@ -206,7 +324,6 @@ function ProjectManagerProvider({ children }) {
 
       dispatch({ type: "project/loaded", payload: { address, project } });
     } catch (error) {
-      // throw new Error(error.message);
       dispatch({ type: "project/error", payload: error.message });
     }
   }
@@ -214,11 +331,10 @@ function ProjectManagerProvider({ children }) {
   return (
     <ProjectManagerContext.Provider
       value={{
-        errorMessage,
-        isLoading,
+        projectManagerStates,
+        projectStates,
         projects,
         projectNumber,
-        successMessage,
         projectInstances,
         handleSubmit,
         loadProject,
