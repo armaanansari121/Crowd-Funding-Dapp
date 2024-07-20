@@ -3,7 +3,7 @@ import React from "react";
 import { Box, Typography } from "@mui/material";
 import Logo from "./Logo";
 
-const Header = () => {
+const Header = ({ children }) => {
   return (
     <Box
       sx={{
@@ -20,9 +20,9 @@ const Header = () => {
       <Typography
         variant="h4"
         component="h1"
-        sx={{ color: "white", marginLeft: "1rem" }}
+        sx={{ color: "#353535", marginLeft: "5rem", fontSize: "4rem" }}
       >
-        {/* Ethers Ensemble */}
+        {children}
       </Typography>
     </Box>
   );

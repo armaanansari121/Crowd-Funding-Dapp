@@ -6,12 +6,12 @@ const Logo = () => {
     <Box
       component="img"
       sx={{
-        height: 100, // Adjust this value as needed
+        height: 100,
         width: "auto",
-        mr: 2, // Adds some margin to the right of the logo
+        mr: 2,
       }}
       alt="Ethers Ensemble Logo"
-      src="../../public/Logo-Transparent.png" // Adjust this path if needed
+      src="../../public/Logo-Transparent.png"
     />
   );
 };

@@ -1,27 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { useWeb3 } from "../context/Web3";
+import React, { useState } from "react";
 import { useProjectManager } from "../context/ProjectManager";
-import Loader from "./Loader";
-import {
-  Box,
-  Select,
-  MenuItem,
-  Button,
-  Typography,
-  InputLabel,
-  FormControl,
-  Alert,
-} from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import InputField from "./InputField";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { differenceInSeconds } from "date-fns";
 import DateField from "./DateField";
+import AccountSelector from "./AccountSelector";
+import SnackbarAlert from "./SnackbarAlert";
 
 const CreateProjectForm = () => {
-  const { accounts, selectedAccount, handleAccountChange } = useWeb3();
-  const { isLoading, errorMessage, handleSubmit, dispatch, successMessage } =
-    useProjectManager();
+  const { projectManagerStates, handleSubmit, dispatch } = useProjectManager();
+  const { errorMessage, successMessage } = projectManagerStates;
   const [form, setForm] = useState({
     receiverAddress: "",
     name: "",
@@ -30,6 +19,7 @@ const CreateProjectForm = () => {
     fundingDeadline: null,
     refundDeadline: null,
   });
+
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -47,25 +37,23 @@ const CreateProjectForm = () => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     try {
-      const now = new Date();
-      const fundingDuration = differenceInSeconds(
-        new Date(form.fundingDeadline),
-        now
+      const now = Math.floor(new Date().getTime() / 1000);
+      const fundingDeadlineUnix = Math.floor(
+        new Date(form.fundingDeadline).getTime() / 1000
       );
-      if (fundingDuration < 432000) {
+      const refundDeadlineUnix = Math.floor(
+        new Date(form.refundDeadline).getTime() / 1000
+      );
+      if (fundingDeadlineUnix - now < 432000) {
         throw new Error("Funding Duration must be atleast 5 days.");
       }
-      const refundDuration = differenceInSeconds(
-        new Date(form.refundDeadline),
-        new Date(form.fundingDeadline)
-      );
-      if (refundDuration < 86400) {
+      if (refundDeadlineUnix - fundingDeadlineUnix < 86400) {
         throw new Error("Refund Duration must be atleast 1 day.");
       }
       const formData = {
         ...form,
-        fundingDuration,
-        refundDuration,
+        fundingDeadlineUnix,
+        refundDeadlineUnix,
       };
 
       await handleSubmit(formData);
@@ -81,13 +69,10 @@ const CreateProjectForm = () => {
         padding: 4,
         backgroundColor: "#121212",
         color: "white",
-        // Hheight: "100%",
         display: "flex",
         flexDirection: "column",
-        // width: "50%",
       }}
     >
-      {/* {isLoading && <Loader />} */}
       <Box sx={{ marginBottom: 4 }}>
         <Typography
           variant="h4"
@@ -151,57 +136,24 @@ const CreateProjectForm = () => {
           />
         </LocalizationProvider>
 
-        <FormControl variant="outlined">
-          <InputLabel
-            shrink={true}
-            sx={{
-              color: "white",
-              backgroundColor: "#121212",
-              paddingRight: "4px",
-            }}
-          >
-            Select Account
-          </InputLabel>
-          <Select
-            value={selectedAccount || ""}
-            onChange={(e) => handleAccountChange(e.target.value)}
-            displayEmpty
-            inputProps={{ "aria-label": "Without label" }}
-            sx={{
-              color: "white",
-              ".MuiOutlinedInput-notchedOutline": {
-                borderColor: "white",
-              },
-              "&:hover .MuiOutlinedInput-notchedOutline": {
-                borderColor: "white",
-              },
-              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                borderColor: "white",
-              },
-              "& .MuiSelect-select": {
-                color: "white",
-              },
-              "& .MuiSelect-icon": {
-                color: "white",
-              },
-            }}
-          >
-            {accounts.map((account) => (
-              <MenuItem key={account} value={account}>
-                {account}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <AccountSelector />
         {errorMessage && (
-          <Alert severity="error" variant="filled">
-            {errorMessage}
-          </Alert>
+          <SnackbarAlert
+            severity={"error"}
+            message={errorMessage}
+            resetMessage={() =>
+              dispatch({ type: "projectManager/resetMessages" })
+            }
+          />
         )}
         {successMessage && (
-          <Alert severity="success" variant="filled">
-            {successMessage}
-          </Alert>
+          <SnackbarAlert
+            severity={"success"}
+            message={successMessage}
+            resetMessage={() =>
+              dispatch({ type: "projectManager/resetMessages" })
+            }
+          />
         )}
         <Button type="submit" variant="contained" color="primary">
           Create Project
