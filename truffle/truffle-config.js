@@ -97,6 +97,14 @@ module.exports = {
         ),
       network_id: 17000,
     },
+    sepolia: {
+      provider: () =>
+        new HDWalletProvider(
+          MNEMONIC,
+          `https://eth-sepolia.g.alchemy.com/v2/${PROJECT_ID}`
+        ),
+      network_id: 11155111,
+    },
     //
     // Useful for private networks
     // private: {
