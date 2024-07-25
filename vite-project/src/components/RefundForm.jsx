@@ -18,7 +18,7 @@ export default function RefundForm() {
     if (web3 && contract) {
       try {
         dispatch({ type: "project/loading" });
-        const refundAmountString = web3.utils.toWei(refundAmount, "ether");
+        const refundAmountString = web3.utils.toWei(refundAmount, "gwei");
         const refundAmountBigInt = BigInt(refundAmountString);
         const gasPrice = await web3.eth.getGasPrice();
         const gasEstimate = await contract.methods
@@ -34,10 +34,14 @@ export default function RefundForm() {
             gasPrice,
           });
         console.log("Refund Transaction: ", transaction);
+        const refundAmountState = refundAmountBigInt * 1000000000n;
         dispatch({
           type: "project/refund/success",
-          raised: raised - refundAmountBigInt,
-          payload: "Refunded Successfully.",
+          payload: {
+            raised: raised - refundAmountState,
+            successMessage: "Refunded Successfully.",
+            address,
+          },
         });
       } catch (error) {
         console.error(error);
